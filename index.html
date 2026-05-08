@@ -390,7 +390,7 @@
 
     <div class="field">
       <label>Tipo de tarea</label>
-      <select id="taskType" onchange="updateTitleSuggestion()">
+      <select id="taskType" onchange="">
         <option value="">— seleccioná el tipo —</option>
         <optgroup label="Página web">
           <option value="Desarrollo">Desarrollo</option>
@@ -454,7 +454,7 @@
       </div>
     </div>
 
-    <button class="submit-btn" onclick="createEvent()" id="submitBtn">
+    <button class="submit-btn" onclick="submitCalendarEvent()" id="submitBtn">
       Subir a Google Calendar
     </button>
     <div class="status" id="status"></div>
@@ -475,7 +475,7 @@
 </div>
 
 <script>
-const API_KEY = 'AIzaSyCucuP7cKKLUOWjxBZjIXVFzJQGlgQzqwI';
+const API_KEY = 'TU_API_KEY';
 const CALENDAR_ID = 'macuperes@gmail.com';
 
 const PROJECT_COLORS = {
@@ -538,7 +538,7 @@ function detectProject(title, desc) {
   return null;
 }
 
-async function createEvent() {
+async function submitCalendarEvent() {
   const title     = document.getElementById('title').value.trim();
   const date      = document.getElementById('date').value;
   const timeStart = document.getElementById('timeStart').value;
