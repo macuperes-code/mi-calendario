@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Calendario</title>
+
+<style>
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --text: #f0ede6;
+    --muted: #666;
+    --web: #c8f060;
+    --web-dim: #1a2608;
+    --ig: #f0a0c8;
+    --ig-dim: #2a0e1e;
+    --fm: #60c8f0;
+    --fm-dim: #081a2a;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 13px;
+    min-height: 100vh;
+    padding: 2rem;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  h1 {
+    font-family: Georgia, serif;
+    font-size: 2.2rem;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  h1 span {
+    font-style: italic;
+    color: var(--muted);
+    font-size: 1.4rem;
+  }
+
+  .date-display {
+    text-align: right;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.8;
+  }
+
+  .projects {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .project-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .project-pill.web  { background: var(--web-dim); color: var(--web); border-color: #3a5010; }
+  .project-pill.ig   { background: var(--ig-dim);  color: var(--ig);  border-color: #4a1a30; }
+  .project-pill.fm   { background: var(--fm-dim);  color: var(--fm);  border-color: #103040; }
+  .project-pill.all  { background: var(--surface2); color: var(--muted); border-color: var(--border); }
+
+  .project-pill:hover, .project-pill.active { opacity: 1; filter: brightness(1.2); }
+  .project-pill .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .project-pill.web .dot  { background: var(--web); }
+  .project-pill.ig .dot   { background: var(--ig); }
+  .project-pill.fm .dot   { background: var(--fm); }
+
+  .layout { display: grid; grid-template-columns: 1fr 380px; gap: 1.5rem; align-items: start; }
+
+  .form-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+  }
+
+  .form-title {
+    font-family: Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+    margin-bottom: 1.25rem;
+    color: var(--text);
+  }
+
+  .field { margin-bottom: 1rem; }
+
+  label {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  input, textarea, select {
+    width: 100%;
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 13px;
+    padding: 10px 12px;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: #444;
+  }
+
+  textarea { resize: vertical; min-height: 80px; }
+
+  select option { background: #1e1e1e; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .project-select {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 2px;
+  }
+
+  .proj-btn {
+    padding: 10px 8px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.15s;
+    letter-spacing: 0.03em;
+  }
+
+  .proj-btn.web  { background: var(--web-dim); color: var(--web); border-color: #2a3e08; }
+  .proj-btn.ig   { background: var(--ig-dim);  color: var(--ig);  border-color: #3a0e20; }
+  .proj-btn.fm   { background: var(--fm-dim);  color: var(--fm);  border-color: #082030; }
+  .proj-btn.active.web  { border-color: var(--web); box-shadow: 0 0 0 1px var(--web); }
+  .proj-btn.active.ig   { border-color: var(--ig);  box-shadow: 0 0 0 1px var(--ig); }
+  .proj-btn.active.fm   { border-color: var(--fm);  box-shadow: 0 0 0 1px var(--fm); }
+
+  .notify-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .notify-chip {
+    padding: 6px 12px;
+    border-radius: 100px;
+    border: 0.5px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .notify-chip.active {
+    background: #1e2e1e;
+    border-color: #3a5a3a;
+    color: #90c090;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 13px;
+    border-radius: 8px;
+    border: none;
+    background: var(--text);
+    color: var(--bg);
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: opacity 0.2s;
+    letter-spacing: 0.05em;
+  }
+
+  .submit-btn:hover { opacity: 0.85; }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .status {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    display: none;
+  }
+
+  .status.success { background: #0e2010; border: 0.5px solid #2a5030; color: #70c080; display: block; }
+  .status.error   { background: #200e0e; border: 0.5px solid #502a2a; color: #c07070; display: block; }
+  .status.loading { background: var(--surface2); border: 0.5px solid var(--border); color: var(--muted); display: block; }
+
+  .events-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .events-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .events-title {
+    font-family: Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+  }
+
+  .refresh-btn {
+    background: none;
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    padding: 5px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    transition: all 0.15s;
+  }
+
+  .refresh-btn:hover { border-color: #444; color: var(--text); }
+
+  .event-item {
+    padding: 1rem 1.5rem;
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    transition: background 0.15s;
+  }
+
+  .event-item:last-child { border-bottom: none; }
+  .event-item:hover { background: var(--surface2); }
+
+  .event-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+
+  .event-dot.web { background: var(--web); }
+  .event-dot.ig  { background: var(--ig); }
+  .event-dot.fm  { background: var(--fm); }
+  .event-dot.other { background: var(--muted); }
+
+  .event-info { flex: 1; min-width: 0; }
+
+  .event-title {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .event-meta {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  .event-tag {
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    align-self: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .event-tag.web { background: var(--web-dim); color: var(--web); }
+  .event-tag.ig  { background: var(--ig-dim);  color: var(--ig); }
+  .event-tag.fm  { background: var(--fm-dim);  color: var(--fm); }
+
+  .empty-state {
+    padding: 2rem 1.5rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 2;
+  }
+
+  .config-note {
+    background: #1a1500;
+    border: 0.5px solid #3a3000;
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 12px;
+    color: #c8a840;
+    line-height: 1.8;
+  }
+
+  .config-note strong { color: #e8c860; }
+  .config-note code {
+    background: #2a2000;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Mi calendario <span>/ sistema</span></h1>
+  </div>
+  <div class="date-display" id="dateDisplay"></div>
+</header>
+
+<div class="config-note" id="configNote">
+  <strong>Configuración pendiente:</strong> Abrí este archivo en un editor de texto y reemplazá estas dos líneas al inicio del script:<br>
+  <code>const API_KEY = 'TU_API_KEY'</code> — clave de Google Calendar API<br>
+  <code>const CALENDAR_ID = 'macuperes@gmail.com'</code> — tu Calendar ID
+</div>
+
+<div class="projects">
+  <div class="project-pill all active" onclick="filterEvents('all')">Todos</div>
+  <div class="project-pill web" onclick="filterEvents('web')"><span class="dot"></span>Página web</div>
+  <div class="project-pill ig"  onclick="filterEvents('ig')"><span class="dot"></span>Instagram</div>
+  <div class="project-pill fm"  onclick="filterEvents('fm')"><span class="dot"></span>Funky Monkey</div>
+</div>
+
+<div class="layout">
+
+  <div class="form-card">
+    <div class="form-title">Nuevo evento</div>
+
+    <div class="field">
+      <label>Proyecto</label>
+      <div class="project-select">
+        <div class="proj-btn web active" onclick="selectProject('web', this)">Página web</div>
+        <div class="proj-btn ig"         onclick="selectProject('ig', this)">Instagram</div>
+        <div class="proj-btn fm"         onclick="selectProject('fm', this)">Funky Monkey</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Título del evento</label>
+      <input type="text" id="title" placeholder="ej. Reunión de revisión de diseño">
+    </div>
+
+    <div class="field">
+      <label>Tipo de tarea</label>
+      <select id="taskType" onchange="updateTitleSuggestion()">
+        <option value="">— seleccioná el tipo —</option>
+        <optgroup label="Página web">
+          <option value="Desarrollo">Desarrollo</option>
+          <option value="Diseño">Diseño</option>
+          <option value="Revisión">Revisión</option>
+        </optgroup>
+        <optgroup label="Instagram">
+          <option value="Grabación">Grabación</option>
+          <option value="Edición">Edición</option>
+          <option value="Publicación">Publicación</option>
+          <option value="Planificación de contenido">Planificación de contenido</option>
+        </optgroup>
+        <optgroup label="Funky Monkey">
+          <option value="Subir evento a redes">Subir evento a redes</option>
+          <option value="Historia">Historia</option>
+          <option value="Post semanal / Reel">Post semanal / Reel</option>
+          <option value="Carretilla">Carretilla</option>
+          <option value="Reunión">Reunión</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>Fecha</label>
+        <input type="date" id="date">
+      </div>
+      <div class="field">
+        <label>Hora inicio</label>
+        <input type="time" id="timeStart" value="09:00">
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>Hora fin</label>
+        <input type="time" id="timeEnd" value="10:00">
+      </div>
+      <div class="field">
+        <label>Prioridad</label>
+        <select id="priority">
+          <option value="normal">Normal</option>
+          <option value="alta">Alta</option>
+          <option value="baja">Baja</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Descripción / notas</label>
+      <textarea id="description" placeholder="Detalles, contexto, links, lo que necesites recordar..."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Notificaciones</label>
+      <div class="notify-row" id="notifyRow">
+        <div class="notify-chip active" data-min="10"   onclick="toggleNotify(this)">10 min antes</div>
+        <div class="notify-chip"        data-min="30"   onclick="toggleNotify(this)">30 min</div>
+        <div class="notify-chip"        data-min="60"   onclick="toggleNotify(this)">1 hora</div>
+        <div class="notify-chip"        data-min="1440" onclick="toggleNotify(this)">1 día</div>
+      </div>
+    </div>
+
+    <button class="submit-btn" onclick="createEvent()" id="submitBtn">
+      Subir a Google Calendar
+    </button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div class="events-card">
+    <div class="events-header">
+      <div class="events-title">Próximos eventos</div>
+      <button class="refresh-btn" onclick="loadEvents()">↻ actualizar</button>
+    </div>
+    <div id="eventsList">
+      <div class="empty-state">
+        Configurá tus credenciales<br>para ver los eventos aquí
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API_KEY = 'AIzaSyCucuP7cKKLUOWjxBZjIXVFzJQGlgQzqwI';
+const CALENDAR_ID = 'macuperes@gmail.com';
+
+const PROJECT_COLORS = {
+  web: { calendarColor: '2', hex: '#c8f060' },
+  ig:  { calendarColor: '6', hex: '#f0a0c8' },
+  fm:  { calendarColor: '1', hex: '#60c8f0' },
+};
+
+const PROJECT_LABELS = {
+  web: 'Página web',
+  ig:  'Instagram',
+  fm:  'Funky Monkey',
+};
+
+let selectedProject = 'web';
+let currentFilter = 'all';
+
+function init() {
+  const now = new Date();
+  document.getElementById('dateDisplay').innerHTML =
+    now.toLocaleDateString('es-CR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) +
+    '<br>' + now.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' });
+
+  const today = now.toISOString().split('T')[0];
+  document.getElementById('date').value = today;
+
+  if (API_KEY !== 'TU_API_KEY') {
+    document.getElementById('configNote').style.display = 'none';
+    loadEvents();
+  }
+}
+
+function selectProject(project, el) {
+  selectedProject = project;
+  document.querySelectorAll('.proj-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function toggleNotify(el) {
+  el.classList.toggle('active');
+}
+
+function filterEvents(f) {
+  currentFilter = f;
+  document.querySelectorAll('.project-pill').forEach(p => p.classList.remove('active'));
+  event.target.closest('.project-pill').classList.add('active');
+  renderEvents(window._cachedEvents || []);
+}
+
+function getNotifications() {
+  return Array.from(document.querySelectorAll('.notify-chip.active'))
+    .map(el => ({ method: 'popup', minutes: parseInt(el.dataset.min) }));
+}
+
+function detectProject(title, desc) {
+  const text = (title + ' ' + desc).toLowerCase();
+  if (text.includes('funky') || text.includes('monkey')) return 'fm';
+  if (text.includes('instagram') || text.includes('ig') || text.includes('reel') || text.includes('historia')) return 'ig';
+  if (text.includes('web') || text.includes('página') || text.includes('sitio')) return 'web';
+  return null;
+}
+
+async function createEvent() {
+  const title     = document.getElementById('title').value.trim();
+  const date      = document.getElementById('date').value;
+  const timeStart = document.getElementById('timeStart').value;
+  const timeEnd   = document.getElementById('timeEnd').value;
+  const desc      = document.getElementById('description').value.trim();
+  const taskType  = document.getElementById('taskType').value;
+  const priority  = document.getElementById('priority').value;
+
+  if (!title || !date) return showStatus('Completá el título y la fecha.', 'error');
+
+  const proj = selectedProject;
+  const color = PROJECT_COLORS[proj];
+  const label = PROJECT_LABELS[proj];
+
+  const fullDesc = [
+    taskType  ? `Tipo: ${taskType}` : '',
+    `Proyecto: ${label}`,
+    priority !== 'normal' ? `Prioridad: ${priority.toUpperCase()}` : '',
+    desc ? `\n${desc}` : '',
+  ].filter(Boolean).join('\n');
+
+  const event = {
+    summary: `[${label}] ${title}`,
+    description: fullDesc,
+    start: { dateTime: `${date}T${timeStart}:00`, timeZone: 'America/Costa_Rica' },
+    end:   { dateTime: `${date}T${timeEnd}:00`,   timeZone: 'America/Costa_Rica' },
+    colorId: color.calendarColor,
+    reminders: { useDefault: false, overrides: getNotifications() },
+  };
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  showStatus('Subiendo a Google Calendar...', 'loading');
+
+  try {
+    const res = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(event),
+      }
+    );
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || 'Error desconocido');
+    }
+
+    showStatus('✓ Evento subido a Google Calendar', 'success');
+    document.getElementById('title').value = '';
+    document.getElementById('description').value = '';
+    document.getElementById('taskType').value = '';
+    setTimeout(loadEvents, 1000);
+  } catch (e) {
+    showStatus(`Error: ${e.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function loadEvents() {
+  if (API_KEY === 'TU_API_KEY') return;
+
+  const now = new Date().toISOString();
+  const future = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  try {
+    const res = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events?key=${API_KEY}&timeMin=${now}&timeMax=${future}&singleEvents=true&orderBy=startTime&maxResults=20`
+    );
+    const data = await res.json();
+    window._cachedEvents = data.items || [];
+    renderEvents(window._cachedEvents);
+  } catch(e) {
+    document.getElementById('eventsList').innerHTML =
+      `<div class="empty-state">No se pudieron cargar los eventos</div>`;
+  }
+}
+
+function renderEvents(events) {
+  const list = document.getElementById('eventsList');
+
+  const filtered = currentFilter === 'all'
+    ? events
+    : events.filter(e => {
+        const t = (e.summary || '').toLowerCase();
+        if (currentFilter === 'web') return t.includes('página web') || t.includes('web');
+        if (currentFilter === 'ig')  return t.includes('instagram');
+        if (currentFilter === 'fm')  return t.includes('funky monkey');
+        return true;
+      });
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty-state">No hay eventos próximos</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(ev => {
+    const title = ev.summary || 'Sin título';
+    const start = ev.start?.dateTime || ev.start?.date;
+    const date  = new Date(start);
+    const dateStr = date.toLocaleDateString('es-CR', { weekday: 'short', month: 'short', day: 'numeric' });
+    const timeStr = ev.start?.dateTime
+      ? date.toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit' })
+      : 'Todo el día';
+
+    let proj = 'other';
+    const tl = title.toLowerCase();
+    if (tl.includes('funky monkey')) proj = 'fm';
+    else if (tl.includes('instagram')) proj = 'ig';
+    else if (tl.includes('página web') || tl.includes('web')) proj = 'web';
+
+    const tagLabel = proj !== 'other' ? PROJECT_LABELS[proj] : '';
+
+    return `
+      <div class="event-item">
+        <div class="event-dot ${proj}"></div>
+        <div class="event-info">
+          <div class="event-title">${title}</div>
+          <div class="event-meta">${dateStr} · ${timeStr}</div>
+        </div>
+        ${tagLabel ? `<div class="event-tag ${proj}">${tagLabel}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = `status ${type}`;
+}
+
+init();
+</script>
+</body>
+</html>
